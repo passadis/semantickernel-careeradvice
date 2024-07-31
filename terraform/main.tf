@@ -124,6 +124,7 @@ resource "azurerm_container_app" "careerapp" {
   }
       registry {
       server  = azurerm_container_registry.acr.login_server
+      username = azurerm_container_registry.acr.admin_username
       password_secret_name = azurerm_container_registry.acr.admin_password
     }
   depends_on = [null_resource.run_azcli_script1]
@@ -171,6 +172,7 @@ resource "azurerm_container_app" "webapi" {
   }
       registry {
       server  = azurerm_container_registry.acr.login_server
+      username = azurerm_container_registry.acr.admin_username
       password_secret_name = azurerm_container_registry.acr.admin_password
     }
   depends_on = [null_resource.run_azcli_script2]
