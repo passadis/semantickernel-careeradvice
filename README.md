@@ -35,4 +35,5 @@ This project showcases the power of Semantic Kernel and .NET, demonstrating how 
 Contributions are welcome! If you have suggestions or improvements, feel free to fork the repository, make your changes, and submit a pull request.
 
 ## Architecture
-![arch](https://github.com/user-attachments/assets/75eaf26a-0d86-4660-bd47-a4c8101467f5)
+
+![archiecture](https://github.com/user-attachments/assets/f1a3cb42-e9ba-493e-9f9a-d57ae75c6719)
