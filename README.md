@@ -29,6 +29,8 @@ This project showcases the power of Semantic Kernel and .NET, demonstrating how 
 ## Instructions
 **Explore the Project in Detail**: For a comprehensive guide on building this project, visit [React Web App with Azure Container Apps and Semantic Kernel](https://www.cloudblogger.eu/2024/07/31/semantic-kernel-develop-your-ai-integrated-web-app-on-azure-and-net-8-0/).
 
+**Important Note** This could have been a one shot deployment but we cannot add the custom domain with Terraform ( unless we use Azure DNS) and the Cors Settings. So we have to add these details for our Solution to function properly!  
+
 ## Contribution
 Contributions are welcome! If you have suggestions or improvements, feel free to fork the repository, make your changes, and submit a pull request.
 
