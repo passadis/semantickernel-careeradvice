@@ -122,10 +122,10 @@ resource "azurerm_container_app" "careerapp" {
     }
 
   }
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.userid.principal_id]
-  }
+      registry {
+      server  = azurerm_container_registry.acr.login_server
+      password_secret_name = azurerm_container_registry.acr.admin_password
+    }
   depends_on = [null_resource.run_azcli_script1]
 }
 
@@ -169,28 +169,13 @@ resource "azurerm_container_app" "webapi" {
       percentage      = 100
     }
   }
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.userid.principal_id]
-  }
+      registry {
+      server  = azurerm_container_registry.acr.login_server
+      password_secret_name = azurerm_container_registry.acr.admin_password
+    }
   depends_on = [null_resource.run_azcli_script2]
 }
 
-
-# Role Assignment
-resource "azurerm_role_assignment" "rbac1" {
-  scope                = data.azurerm_resource_group.rgdemo.id
-  role_definition_name = "AcrPull"
-  principal_id         = azurerm_user_assigned_identity.userid.principal_id
-}
-
-# Role Assignment 2
-resource "azurerm_role_assignment" "rbac2" {
-  scope                = data.azurerm_resource_group.rgdemo.id
-  role_definition_name = "AcrPush"
-  principal_id         = azurerm_user_assigned_identity.userid.principal_id
-  depends_on           = [azurerm_role_assignment.rbac1]
-}
 
 # Script to push images to ACR
 resource "null_resource" "run_azcli_script1" {
