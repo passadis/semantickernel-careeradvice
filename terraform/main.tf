@@ -124,21 +124,10 @@ resource "azurerm_container_app" "careerapp" {
   }
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.userid.id]
+    identity_ids = [azurerm_user_assigned_identity.userid.principal_id]
   }
   depends_on = [null_resource.run_azcli_script1]
 }
-
-
-#Custom Domain - frontend
-resource "azurerm_container_app_custom_domain" "azdev2" {
-  name                                     = "xxxxxxxxx.com"
-  container_app_id                         = azurerm_container_app.careerapp.id
-  container_app_environment_certificate_id = azurerm_container_app_environment_certificate.cert.id
-  certificate_binding_type                 = "SniEnabled"
-}
-
-
 
 
 # Create Azure Container App - Backend
@@ -182,20 +171,10 @@ resource "azurerm_container_app" "webapi" {
   }
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.userid.id]
+    identity_ids = [azurerm_user_assigned_identity.userid.principal_id]
   }
   depends_on = [null_resource.run_azcli_script2]
 }
-
-# Custom Domain - backend
-resource "azurerm_container_app_custom_domain" "azdev1" {
-  name                                     = "xxxxxxxxxxx.com"
-  container_app_id                         = azurerm_container_app.webapi.id
-  container_app_environment_certificate_id = azurerm_container_app_environment_certificate.cert.id
-  certificate_binding_type                 = "SniEnabled"
-}
-
-
 
 
 # Role Assignment
@@ -218,8 +197,6 @@ resource "null_resource" "run_azcli_script1" {
   provisioner "local-exec" {
     command = "az acr login --name ${azurerm_container_registry.acr.name} && az acr build --registry ${azurerm_container_registry.acr.name} --image careerapp:v30 ../frontend/smart-career"
   }
-
-  depends_on = [azurerm_container_registry.acr]
 }
 
 # Script to push images to ACR
@@ -228,5 +205,4 @@ resource "null_resource" "run_azcli_script2" {
     command = "az acr login --name ${azurerm_container_registry.acr.name} && az acr build --registry ${azurerm_container_registry.acr.name} --image webapi:v30 ../backend/advicebackend"
   }
 
-  depends_on = [azurerm_container_registry.acr]
 }
