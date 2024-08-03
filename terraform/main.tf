@@ -162,11 +162,11 @@ resource "azurerm_container_app" "webapi" {
         value = "https://xxxxxxxxxx.xxxxxxxxxx.xx"
       }
       env {
-        name  = "OPENAI_ENDPOINT"
+        name  = "OPENAI_API_ENDPOINT"
         value = var.openai_endpoint
       }
       env {
-        name  = "OPENAI_APIKEY"
+        name  = "OPENAI_API_KEY"
         value = var.openai_apikey
       }
 	  env {
