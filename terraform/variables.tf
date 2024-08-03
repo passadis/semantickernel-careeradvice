@@ -25,3 +25,7 @@ variable "openai_apikey" {
   description = "aPIKEY"
   type        = string
 }
+variable "pfx_password" {
+  description = "PFX Password"
+  type        = string
+}

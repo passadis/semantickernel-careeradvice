@@ -169,6 +169,10 @@ resource "azurerm_container_app" "webapi" {
         name  = "OPENAI_APIKEY"
         value = var.openai_apikey
       }
+	  env {
+        name  = "PFX_PASSWORD"
+        value = var.pfx_password
+      }
     }
     min_replicas = 1
     max_replicas = 3
