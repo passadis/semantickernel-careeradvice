@@ -6,6 +6,7 @@ resource "random_string" "str-name" {
   lower   = true
   special = false
 }
+data "azurerm_client_config" "current" {}
 
 # Create a resource group
 resource "azurerm_resource_group" "rgdemo" {
@@ -45,14 +46,16 @@ output "app_id" {
   sensitive = true
 }
 
+
+
 # Create Azure Container Registry
 resource "azurerm_container_registry" "acr" {
-  name                = "azr${random_string.str-name.result}"
-  resource_group_name = azurerm_resource_group.rgdemo.name
-  location            = azurerm_resource_group.rgdemo.location
-  sku                 = "Standard"
-  admin_enabled       = true
-  depends_on          = [azurerm_role_assignment.rbac2]
+  name                          = "azr${random_string.str-name.result}"
+  resource_group_name           = azurerm_resource_group.rgdemo.name
+  location                      = azurerm_resource_group.rgdemo.location
+  sku                           = "Premium"
+  admin_enabled                 = true
+  public_network_access_enabled = true
 }
 
 output "acrname" {
@@ -60,17 +63,13 @@ output "acrname" {
 }
 
 
-# Create a Storage Account 
-resource "azurerm_storage_account" "storage" {
-  name                     = "s${random_string.str-name.result}01"
-  resource_group_name      = azurerm_resource_group.rgdemo.name
-  location                 = azurerm_resource_group.rgdemo.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+data "azurerm_container_registry" "acr" {
+  name                = azurerm_container_registry.acr.name
+  resource_group_name = azurerm_resource_group.rgdemo.name
 }
 
-#User Assigned Managed Identity
-resource "azurerm_user_assigned_identity" "userid" {
+# User Assigned Identity
+resource "azurerm_user_assigned_identity" "uiserid" {
   location            = azurerm_resource_group.rgdemo.location
   name                = "uid${random_string.str-name.result}"
   resource_group_name = azurerm_resource_group.rgdemo.name
@@ -83,14 +82,14 @@ resource "azurerm_container_app_environment" "acaenv" {
   location                   = azurerm_resource_group.rgdemo.location
   resource_group_name        = azurerm_resource_group.rgdemo.name
   log_analytics_workspace_id = azurerm_log_analytics_workspace.logs.id
-}
 
-#Certificate
+}
+# Certificate
 resource "azurerm_container_app_environment_certificate" "cert" {
   name                         = "azuredev"
   container_app_environment_id = azurerm_container_app_environment.acaenv.id
-  certificate_blob_base64      = filebase64("xxxxxxxxxx.pfx")
-  certificate_password         = "xxxxxxxxxxxxxx"
+  certificate_blob_base64      = filebase64("advicebackend.pfx")
+  certificate_password         = "1q2w3e4r"
 }
 
 
@@ -100,7 +99,14 @@ resource "azurerm_container_app" "careerapp" {
   container_app_environment_id = azurerm_container_app_environment.acaenv.id
   resource_group_name          = azurerm_resource_group.rgdemo.name
   revision_mode                = "Single"
-
+  registry {
+    server   = azurerm_container_registry.acr.login_server
+    identity = azurerm_user_assigned_identity.uiserid.id
+  }
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.uiserid.id]
+  }
   template {
     container {
       name   = "careerapp"
@@ -110,6 +116,7 @@ resource "azurerm_container_app" "careerapp" {
     }
     min_replicas = 1
     max_replicas = 3
+
   }
   ingress {
     allow_insecure_connections = false
@@ -122,12 +129,14 @@ resource "azurerm_container_app" "careerapp" {
     }
 
   }
-      registry {
-      server  = azurerm_container_registry.acr.login_server
-      username = azurerm_container_registry.acr.admin_username
-      password_secret_name = azurerm_container_registry.acr.admin_password
-    }
-  depends_on = [null_resource.run_azcli_script1]
+
+}
+
+# Role Assignment
+resource "azurerm_role_assignment" "acr1" {
+  principal_id         = azurerm_user_assigned_identity.uiserid.principal_id
+  role_definition_name = "AcrPull"
+  scope                = azurerm_resource_group.rgdemo.id
 }
 
 
@@ -137,6 +146,10 @@ resource "azurerm_container_app" "webapi" {
   container_app_environment_id = azurerm_container_app_environment.acaenv.id
   resource_group_name          = azurerm_resource_group.rgdemo.name
   revision_mode                = "Single"
+  registry {
+    server   = azurerm_container_registry.acr.login_server
+    identity = azurerm_user_assigned_identity.uiserid.id
+  }
 
   template {
     container {
@@ -146,7 +159,7 @@ resource "azurerm_container_app" "webapi" {
       memory = "2Gi"
       env {
         name  = "ALLOWED_ORIGINS"
-        value = "https://xxxxxxxxxxx.azuredev.online"
+        value = "https://xxxxxxxxxx.xxxxxxxxxx.xx"
       }
       env {
         name  = "OPENAI_ENDPOINT"
@@ -169,12 +182,12 @@ resource "azurerm_container_app" "webapi" {
       latest_revision = true
       percentage      = 100
     }
+
   }
-      registry {
-      server  = azurerm_container_registry.acr.login_server
-      username = azurerm_container_registry.acr.admin_username
-      password_secret_name = azurerm_container_registry.acr.admin_password
-    }
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.uiserid.id]
+  }
   depends_on = [null_resource.run_azcli_script2]
 }
 
@@ -184,6 +197,7 @@ resource "null_resource" "run_azcli_script1" {
   provisioner "local-exec" {
     command = "az acr login --name ${azurerm_container_registry.acr.name} && az acr build --registry ${azurerm_container_registry.acr.name} --image careerapp:v30 ../frontend/smart-career"
   }
+
 }
 
 # Script to push images to ACR
