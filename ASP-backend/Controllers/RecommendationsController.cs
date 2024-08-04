@@ -35,7 +35,7 @@ namespace CareerAdviceBackend.Controllers
         [HttpPost("get-recommendations")]
         public async Task<IActionResult> GetRecommendations([FromBody] UserInput userInput)
         {
-            _logger.LogInformation("Received user input: {Skills}, {Interests}, {Experience}", userInput.Skills, userInput.Interests, userInput.Experience);
+       //     _logger.LogInformation("Received user input: {Skills}, {Interests}, {Experience}", userInput.Skills, userInput.Interests, userInput.Experience);
 
             var query = $"I have the following skills: {userInput.Skills}. " +
                         $"My interests are: {userInput.Interests}. " +
@@ -55,7 +55,7 @@ namespace CareerAdviceBackend.Controllers
 
             string content = result.Content;
 
-            _logger.LogInformation("Received content: {Content}", content);
+          //  _logger.LogInformation("Received content: {Content}", content);
 
             var recommendations = ParseRecommendations(content);
 
@@ -66,7 +66,7 @@ namespace CareerAdviceBackend.Controllers
         [HttpPost("skilling-plan")]
         public async Task<IActionResult> GetSkillingPlan([FromBody] UserSelectionRequest userSelectionRequest)
         {
-            _logger.LogInformation("Received user selection for skilling plan: {UserSelection}", userSelectionRequest.UserSelection);
+         //   _logger.LogInformation("Received user selection for skilling plan: {UserSelection}", userSelectionRequest.UserSelection);
 
             // Extract relevant details from userSelectionRequest
             var jobTitle = userSelectionRequest.UserSelection;
@@ -90,12 +90,7 @@ namespace CareerAdviceBackend.Controllers
 
             return Ok(new { skillingPlan = content });
         }
-    
-
-
-
-
-        
+      
 
         [Route("fetch-jobs")]
         public async Task<IActionResult> FetchJobs([FromBody] JobSearchRequest request)
@@ -124,7 +119,7 @@ namespace CareerAdviceBackend.Controllers
             };
             requestMessage.Headers.Add("X-Rapidapi-Key", "xxxxxxxxxxxxxxxxxxxxxxxxx");
             requestMessage.Headers.Add("X-Rapidapi-Host", "linkedin-jobs-scraper-api.p.rapidapi.com");
-            //requestMessage.Headers.Add("Content-Type", "application/json");
+            
 
             var response = await client.SendAsync(requestMessage);
 
@@ -135,7 +130,7 @@ namespace CareerAdviceBackend.Controllers
             }
 
             var jobListings = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation("Received job listings: {JobListings}", jobListings); // Log the raw JSON response
+           // _logger.LogInformation("Received job listings: {JobListings}", jobListings); // Log the raw JSON response
 
             var jobs = JsonSerializer.Deserialize<List<JobListing>>(jobListings);
 
